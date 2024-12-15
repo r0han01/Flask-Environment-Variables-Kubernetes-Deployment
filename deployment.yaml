@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-env-vars
+  namespace: flask-app-namespace
+spec:
+  replicas: 2  # Number of pods to run
+  selector:
+    matchLabels:
+      app: flask-env-vars
+  template:
+    metadata:
+      labels:
+        app: flask-env-vars
+    spec:
+      containers:
+        - name: flask-env-vars
+          image: r0han01/flask_env_vars:latest  # Your Docker image from Docker Hub
+          ports:
+            - containerPort: 5000  # Changed the Flask app's internal port to 5000
+          env:
+            - name: DATABASE_URL         # Example environment variable
+              value: "Hey there's no URL"
+            - name: API_KEY              # Example environment variable
+              value: "12345abcde"
+            - name: DEBUG_MODE           # Example environment variable
+              value: "True"
+            - name: APP_VERSION          # Example environment variable
+              value: "v1.0.0"
+            - name: LOG_LEVEL            # Example environment variable
+              value: "INFO"
+            - name: PORT                 # Updated port to 5000
+              value: "5000"             # Flask app port inside the container
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-env-vars-service
+spec:
+  selector:
+    app: flask-env-vars
+  ports:
+    - protocol: TCP
+      port: 80        # Expose the service on port 80
+      targetPort: 5000  # Changed to match the new internal port of the Flask app
+  type: NodePort       # Expose the service externally via NodePort
+
