@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: application-k8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest  # You can specify your desired version
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: ""  # Leave these blank to disable authentication
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: ""
+          command: ["mongod", "--noauth", "--bind_ip_all"]  # Disable authentication
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: application-k8
+spec:
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None  # This is used for StatefulSets; remove if you're using a regular deployment

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: application-k8
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-backend
+  namespace: application-k8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-backend
+  template:
+    metadata:
+      labels:
+        app: flask-backend
+    spec:
+      containers:
+      - name: flask-backend
+        image: r0han01/flask-env-vars:latest  # Ensure this is the correct image
+        ports:
+        - containerPort: 5000  # Flask default port
+        env:
+        - name: MONGO_URI
+          value: "mongodb://mongo:27017/mydatabase"  # MongoDB URI (ensure mongo service is named 'mongo')
+        - name: FLASK_ENV
+          value: "production"
+        - name: FLASK_APP
+          value: "app.py"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-backend
+  namespace: application-k8
+spec:
+  selector:
+    app: flask-backend
+  ports:
+    - protocol: TCP
+      port: 5000  # Exposes the Flask app on port 5000
+      targetPort: 5000
+  type: LoadBalancer  # Expose the backend externally via LoadBalancer

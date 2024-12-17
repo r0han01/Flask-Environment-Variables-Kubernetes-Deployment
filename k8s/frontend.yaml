@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: application-k8
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: application-k8
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: r0han01/frontend:latest  # Replace with your actual Docker image for the frontend
+        ports:
+        - containerPort: 8000  # Assuming frontend is running on port 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: application-k8
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 8000  # Expose the frontend app internally on port 80
+      targetPort: 8000  # Assuming frontend runs on port 80
+  type: LoadBalancer  # Internal service (accessible only within the cluster)
