@@ -271,5 +271,114 @@ Ensure the services are correctly set up:
 kubectl get svc -n application-k8
 ```
 
+## Interact with Flask API Using curl Inside the mongo-express Pod
+### Explanation
+- In this guide, we will interact with the Flask API inside your Kubernetes cluster using the `mongo-express` pod. We will perform two main tasks:
+
+Add a name to the MongoDB database using the Flask API's `POST `endpoint.
+Fetch all names stored in the database using the `GET` endpoint of the Flask API.
+Here’s the step-by-step breakdown:
+
+### Step 1: Enter the mongo-express Pod
+We will start by entering the `mongo-express` pod, which provides a web interface to interact with the MongoDB instance in the cluster.
+
+Run the following command to start an interactive shell session inside the `mongo-express` pod:
+
+```bash
+kubectl exec -it mongo-express-6c944bdb69-abcd9 -n application-k8 -- /bin/sh
+```
+### Explanation:
+- `kubectl exec`: This command is used to run a command inside a pod.
+- `-it`: Runs the shell interactively.
+- `mongo-express-6c944bdb69-abcd9`: The pod name.
+- `-n application-k8`: Specifies the Kubernetes namespace `(application-k8)`.
+- `-- /bin/sh`: Opens a shell session in the pod.
+This command opens a shell inside the pod, allowing you to run commands like curl to interact with the Flask API.
+
+### Step 2: Use curl Inside the Pod to Interact with Flask API
+#### Add a Name (POST request):
+Now that we are inside the pod, we can use `curl` to make requests to the Flask API. The first request will be a `POST` request to add a name to the database. We will target the `flask-backend` service, which is running on port 5000 in the cluster.
+
+Run the following `curl` command:
+
+```bash
+curl -X POST "http://flask-backend.application-k8:5000/api/add/John"
+```
+### Explanation:
+- `curl -X POST`: The `curl` command with the `POST` method to send data.
+- `"http://flask-backend.application-k8:5000/api/add/John":` The URL of the Flask API endpoint for adding a name. The name John is passed as a parameter in the URL.
+### Expected response:
+If the request is successful, you should get a response like this:
+
+```json
+{
+  "message": "Name 'John' has been added successfully!",
+  "id": "some-id-here"
+}
+```
+### Fetch All Names (GET request):
+Next, we'll send a `GET` request to retrieve all the names stored in the MongoDB database. The Flask API will return a list of names.
+
+Run the following `curl` command:
+
+```bash
+curl "http://flask-backend.application-k8:5000/"
+```
+### Explanation:
+- `curl`: The command to send a request.
+- `"http://flask-backend.application-k8:5000/"`: The URL of the Flask API endpoint to fetch all names.
+### Expected response:
+The response will be a JSON list of all names stored in the database. For example:
+
+```json
+{
+  "names": ["John", "Alice", "Bob"]
+}
+```
+## Step 3: Update the curl Command to Add More Columns
+### Adding More Columns (age, status, etc.):
+You can easily extend the functionality to add additional fields (e.g., `age`, `status`) to the MongoDB document. Here's how to do it:
+
+### Update the curl Command:
+To add a name with additional fields (`age`, `status`), you need to send a JSON payload in the POST request. Here's how you can modify your `curl `command:
+
+```bash
+curl -X POST "http://flask-backend.application-k8:5000/api/add" \
+    -H "Content-Type: application/json" \
+    -d '{"name": "John", "age": 30, "status": "active"}'
+```
+### Explanation of the updated `curl` command:
+- `-X POST`: The `POST `method for creating a new resource.
+- `"http://flask-backend.application-k8:5000/api/add"`: The URL of the Flask API endpoint to add a name.
+- `-H "Content-Type: application/json"`: Specifies that the request body is in JSON format.
+- `-d '{"name": "John", "age": 30, "status": "active"}'`: Sends the data as JSON, where:
+  - `name`: The name of the person to add.
+  - `age`: The age of the person (you can replace 30 with any age).
+  - `status`: The status of the person (e.g., "active", "inactive", etc.).
+### Expected Response:
+If the request is successful, the response will be similar to:
+
+```json
+{
+  "message": "Name 'John' has been added successfully!",
+  "id": "some-id-here"
+}
+```
+Where `"some-id-here" `will be the unique ID assigned to the document in MongoDB.
+
+### Summary of Changes:
+- Flask API: The `POST `endpoint now accepts a JSON body with `name`, `age`, and `status` fields and stores them in the database.
+- `curl` Command: We modified the `curl` command to send a JSON body with `name`, `age`, and `status` as part of the request.
+## Step 4: Verify the Outputs
+- For adding a name: If you successfully added a name, the response will confirm the addition, including the name and its unique ID in the database.
+- For fetching names: The `GET` request should return a list of all names in the database.
+## Step 5: Exit the Pod
+After you’re done interacting with the pod, you can exit the shell session by typing `exit`:
+
+```bash
+exit
+```
+This will close the shell and bring you back to your local machine's terminal
+
 ## Conclusion
 - This setup allows you to deploy a full-stack application (Flask backend, frontend, and MongoDB) in Kubernetes, with Docker images and services running in a cloud-native environment. Make sure you regularly update the deployments, monitor the services, and scale based on demand.
